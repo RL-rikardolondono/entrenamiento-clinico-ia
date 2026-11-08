@@ -1,0 +1,23 @@
+name: Tareas diarias (Entrenamiento Clínico-IA)
+on:
+  schedule:
+    - cron: '7 12 * * *'   # todos los días a las 7:07 a. m. de Colombia
+  workflow_dispatch: {}
+permissions:
+  contents: read
+jobs:
+  enviar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-save pg@8
+      - run: node correos/tareas-diarias.mjs
+        env:
+          NEON_CORREO: ${{ secrets.NEON_CORREO }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          BREVO_REMITENTE: ${{ vars.BREVO_REMITENTE }}
+          FACTURA_IA_LLAVE: ${{ secrets.FACTURA_IA_LLAVE }}
+          FACTURA_IVA: ${{ vars.FACTURA_IVA }}
