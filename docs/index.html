@@ -2,7 +2,7 @@
 <meta name="description" content="Entrenamiento Clínico-IA: simulador de casos clínicos para médicos, enfermería y salud mental. Gamificado, con casos de la semana basados en estudios reales. SkyNet Genesis.">
 <meta name="theme-color" content="#1E3A4C"><meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%231E3A4C%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%276%27 fill=%27%23E0A21A%27/%3E%3C/svg%3E">
-<script src="config.js?v=452716"></script>
+<script src="config.js?v=156815"></script>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icono-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
 <title>Entrenamiento Clínico-IA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1170,7 +1170,7 @@ async function pagarReal(btn){
   if(btn){ btn.disabled=true; btn.textContent="Abriendo Bold…"; }
   try{
     const p = await rpc("pedido_crear", fac?{p_items:items, p_factura:fac}:{p_items:items});
-    const qs = new URLSearchParams({plan:p.plan, empresa:p.empresa, meses:"1", org:(sesion().nombre||"").slice(0,40), volver:location.origin+location.pathname+"?pago=bold"});
+    const qs = new URLSearchParams({plan:p.plan, empresa:p.empresa, meses:"1", org:(sesion().nombre||"").slice(0,40), volver:location.origin+"/"});
     const r = await fetch("https://skynetgenesis.com/bold-firma.php?"+qs.toString(), {cache:"no-store"}); const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"firma");
     if(Number(d.amount)!==p.total) throw new Error("El valor del pedido no coincide. Escríbanos por WhatsApp.");
@@ -1228,7 +1228,7 @@ async function arrancarProd(){
   if(qs.get("error")){ history.replaceState(null,"",location.pathname); V={vista:"recuperar", p:{vencido:true}}; render(); return; }
   if(await authSesion()){
     try{ await entrarReal(); colaEnviar(); }catch(e){ MODO="publico"; ir("ingresar"); toast(limpiarErr(e.message)); }
-    if(qs.get("pago")==="bold"){ history.replaceState(null,"",location.pathname); esperarPago(); }
+    if(qs.get("pago")==="bold" || qs.get("bold-order-id")){ history.replaceState(null,"",location.pathname); esperarPago(); }
     return;
   }
   if(location.hash==="#sg"){ V={vista:"ingresar", p:{reservado:true}}; render(); return; }
@@ -2372,7 +2372,7 @@ function clickProd(act, id, b, u){
     case "retirar-inv": accionReal("inst_retirar",{p_user:id},"Invitación quitada."); return true;
     case "nuevo-codigo": accionReal("inst_codigo_nuevo",{},null,r=>toast("Nuevo código: "+r.codigo+". El anterior deja de funcionar.")); return true;
     case "cert-enviado": accionReal("adm_cert_enviado",{p_id:+id},"Certificado marcado como enviado."); return true;
-    case "adm-prueba-bold": { const qs=new URLSearchParams({plan:APP.plan+":prueba", empresa:"plataforma__"+Date.now().toString(36), meses:"1", volver:location.origin+location.pathname});
+    case "adm-prueba-bold": { const qs=new URLSearchParams({plan:APP.plan+":prueba", empresa:"plataforma__"+Date.now().toString(36), meses:"1", volver:location.origin+"/"});
       b.disabled=true; fetch("https://skynetgenesis.com/bold-firma.php?"+qs.toString(),{cache:"no-store"}).then(r=>r.json()).then(async d=>{ if(!d.ok) throw new Error(d.error||"firma");
         if(!window.BoldCheckout) await new Promise((ok,ko)=>{ const sc=document.createElement("script"); sc.src="https://checkout.bold.co/library/boldPaymentButton.js"; sc.onload=ok; sc.onerror=ko; document.head.appendChild(sc); });
         new window.BoldCheckout({orderId:d.orderId, currency:d.currency, amount:String(d.amount), apiKey:d.apiKey, integritySignature:d.signature, description:d.description, redirectionUrl:d.redirectionUrl}).open(); })
