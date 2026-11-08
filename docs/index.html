@@ -2,7 +2,7 @@
 <meta name="description" content="Entrenamiento Clínico-IA: simulador de casos clínicos para médicos, enfermería y salud mental. Gamificado, con casos de la semana basados en estudios reales. SkyNet Genesis.">
 <meta name="theme-color" content="#1E3A4C"><meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%231E3A4C%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%276%27 fill=%27%23E0A21A%27/%3E%3C/svg%3E">
-<script src="config.js?v=166118"></script>
+<script src="config.js?v=177428"></script>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icono-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
 <title>Entrenamiento Clínico-IA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1177,24 +1177,32 @@ async function pagarReal(btn){
     if(!r.ok || !d.ok) throw new Error(d.error||"firma");
     if(Number(d.amount)!==p.total) throw new Error("El valor del pedido no coincide. Escríbanos por WhatsApp.");
     if(!window.BoldCheckout) await new Promise((ok,ko)=>{ const sc=document.createElement("script"); sc.src="https://checkout.bold.co/library/boldPaymentButton.js"; sc.onload=ok; sc.onerror=ko; document.head.appendChild(sc); });
-    try{ localStorage.setItem("eci_pago_pend", JSON.stringify({pedido:p.pedido, t:Date.now()})); }catch(e){}
+    try{ localStorage.setItem("eci_pago_pend", JSON.stringify({pedido:p.pedido, orden:d.orderId, t:Date.now()})); }catch(e){}
     new window.BoldCheckout({orderId:d.orderId, currency:d.currency, amount:String(d.amount), apiKey:d.apiKey, integritySignature:d.signature, description:d.description, redirectionUrl:d.redirectionUrl}).open();
   }catch(e){ toast(/coincide/.test(e.message)?e.message:"No se pudo abrir el pago con Bold. Intente de nuevo o escríbanos por WhatsApp."); }
   finally{ if(btn){ btn.disabled=false; btn.textContent="Pagar con Bold"; } }
 }
 /* Al volver de Bold: el pago se aplica cuando Bold avisa (normalmente en segundos). Se revisa varias veces. */
-async function esperarPago(){
+/* Si el aviso de Bold no llega, la app le pide a skynetgenesis.com que consulte a Bold y deje el pago registrado. */
+async function verificarBold(ref){
+  if(!ref) return false;
+  try{ const r=await fetch("https://skynetgenesis.com/bold-verificar.php?ref="+encodeURIComponent(ref)+"&app=entrenamiento-clinico-ia",{cache:"no-store"}); return r.ok; }catch(e){ return false; }
+}
+async function esperarPago(refQs){
   let pend=null; try{ pend=JSON.parse(localStorage.getItem("eci_pago_pend")||"null"); }catch(e){}
-  if(!pend) return;
+  const ref = refQs || (pend&&pend.orden) || "";
+  if(!pend){ verificarBold(ref); return; }
   toast("Estamos confirmando su pago con Bold…");
+  let registrado=false;
   for(let i=0;i<12;i++){
+    if(!registrado && i%2===0) registrado = await verificarBold(ref);
     await new Promise(r=>setTimeout(r, 5000));
     try{ await cargarEstado(); }catch(e){ continue; }
     const pd = (ESTADO.pedidosPendientes||[]).find(p=>p.id===pend.pedido);
     if(pd && pd.estado==="revisar"){ try{ localStorage.removeItem("eci_pago_pend"); }catch(e){} toast("Recibimos su pago y lo estamos revisando. Le escribiremos pronto; si tiene dudas, escríbanos por WhatsApp."); return; }
     if(!pd){ try{ localStorage.removeItem("eci_pago_pend"); }catch(e){} const u=sesion(); if(u){ DB.carrito[u.id]=[]; guardarDB(); } render(); toast("Pago aprobado. Ya está activo."); return; }
   }
-  toast("Bold aún no confirma el pago. Si ya pagó, se activará en unos minutos; si no, puede intentarlo de nuevo.");
+  toast(registrado ? "Bold ya confirmó su pago. Se activará en los próximos 10 minutos; recargue la página entonces." : "Bold aún no confirma el pago. Si ya pagó, se activará en unos minutos; si no, puede intentarlo de nuevo.");
 }
 
 /* ---------- cuadro de honor ---------- */
@@ -1230,7 +1238,7 @@ async function arrancarProd(){
   if(qs.get("error")){ history.replaceState(null,"",location.pathname); V={vista:"recuperar", p:{vencido:true}}; render(); return; }
   if(await authSesion()){
     try{ await entrarReal(); colaEnviar(); }catch(e){ MODO="publico"; ir("ingresar"); toast(limpiarErr(e.message)); }
-    if(qs.get("pago")==="bold" || qs.get("bold-order-id")){ history.replaceState(null,"",location.pathname); esperarPago(); }
+    if(qs.get("pago")==="bold" || qs.get("bold-order-id")){ const ref=qs.get("bold-order-id")||""; history.replaceState(null,"",location.pathname); esperarPago(ref); }
     return;
   }
   if(location.hash==="#sg"){ V={vista:"ingresar", p:{reservado:true}}; render(); return; }
