@@ -2,7 +2,7 @@
 <meta name="description" content="Entrenamiento Clínico-IA: simulador de casos clínicos para médicos, enfermería y salud mental. Gamificado, con casos de la semana basados en estudios reales. SkyNet Genesis.">
 <meta name="theme-color" content="#1E3A4C"><meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%231E3A4C%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%276%27 fill=%27%23E0A21A%27/%3E%3C/svg%3E">
-<script src="config.js?v=177428"></script>
+<script src="config.js?v=182477"></script>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icono-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
 <title>Entrenamiento Clínico-IA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -5288,7 +5288,10 @@ try{ window.addEventListener("online", ()=>colaEnviar()); }catch(e){}
 function pieExtra(){ return `<span class="pie-links"><button class="lnk" data-act="nav" data-v="terminos">Términos</button> · <button class="lnk" data-act="nav" data-v="privacidad">Tratamiento de datos</button> · <button class="lnk" data-act="nav" data-v="verificar">Verificar una constancia</button></span><button class="btn-sg" data-act="acceso-sg">Acceso SkyNet Genesis</button>`; }
 function bloqueadoHTML(motivo){ return `<div class="wrap estrecho"><div class="card stack" style="max-width:520px;margin:30px auto;text-align:center"><h2>Su cuenta está bloqueada</h2><p class="muted">${esc(motivo||"")}</p><p class="small">Si cree que es un error, escríbanos.</p><div class="row" style="justify-content:center"><a class="btn wa" href="${waLink("Hola, mi cuenta de Entrenamiento Clínico-IA aparece bloqueada")}" target="_blank" rel="noopener">WhatsApp ${SG.waTxt}</a><button class="btn sec" data-act="nav" data-v="salir">Cerrar sesión</button></div></div></div>`; }
 /* Fotos reales de la portada (Unsplash, licencia gratuita): se publican solo las que el dueño aprueba */
-const FOTOS = { hero:null, inst:null, est:null };   // ej.: {src:"https://images.unsplash.com/photo-...", alt:"..."}
+const FOTOS = {   // aprobadas por el señor el 8 nov 2026 (1B, 2C, 3D) · Unsplash
+  hero:{src:"https://images.unsplash.com/photo-1579684288452-b334934f845f", alt:"Equipo médico atendiendo a un paciente en el quirófano"},
+  inst:{src:"https://images.unsplash.com/photo-1633488781325-d36e6818d0c8", alt:"Médico y enfermera atendiendo a un paciente en el hospital"},
+  est:{src:"https://images.unsplash.com/photo-1565598621680-94ac0c22b148", alt:"Estudiantes aprendiendo juntos"} };   // ej.: {src:"https://images.unsplash.com/photo-...", alt:"..."}
 const fotoHTML = (f, cls) => f ? `<img class="foto ${cls||""}" src="${esc(f.src)}?w=1100&q=70&auto=format&fit=crop" alt="${esc(f.alt)}" loading="lazy" onerror="this.remove()">` : "";
 /* Se ejecuta después de pintar cada pantalla: agrega las secciones nuevas sin tocar el diseño de base */
 function mejorarVista(v){
