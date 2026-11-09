@@ -2,7 +2,7 @@
 <meta name="description" content="Entrenamiento Clínico-IA: simulador de casos clínicos para médicos, enfermería y salud mental. Gamificado, con casos de la semana basados en estudios reales. SkyNet Genesis.">
 <meta name="theme-color" content="#1E3A4C"><meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%231E3A4C%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%276%27 fill=%27%23E0A21A%27/%3E%3C/svg%3E">
-<script src="config.js?v=185297"></script>
+<script src="config.js?v=185820"></script>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icono-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
 <title>Entrenamiento Clínico-IA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1258,7 +1258,7 @@ async function arrancarProd(){
     return;
   }
   if(location.hash==="#sg"){ V={vista:"ingresar", p:{reservado:true}}; render(); return; }
-  if(location.hash==="#demo"){ render(); selectorDemo(); return; }
+  if(location.hash==="#demo"){ history.replaceState(null,"",location.pathname); render(); iniciarDemo(); return; }
   if(location.hash.startsWith("#registro")){ ir("registro"); return; }
   V={vista:"portada", p:{}}; render();
 }
