@@ -2,7 +2,7 @@
 <meta name="description" content="Entrenamiento Clínico-IA: simulador de casos clínicos para médicos, enfermería y salud mental. Gamificado, con casos de la semana basados en estudios reales. SkyNet Genesis.">
 <meta name="theme-color" content="#1E3A4C"><meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%231E3A4C%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%276%27 fill=%27%23E0A21A%27/%3E%3C/svg%3E">
-<script src="config.js?v=182477"></script>
+<script src="config.js?v=183825"></script>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icono-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
 <title>Entrenamiento Clínico-IA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -184,6 +184,7 @@ tr:last-child td{border-bottom:0}
 .aviso-cobro{border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
 .aviso-cobro.rojo{background:var(--rojoSuave);border:1px solid #F1C6C0;color:#7A2A20}
 .aviso-cobro.ambar{background:var(--ambarSuave);border:1px solid #F0DDAE;color:#6B4A10}
+.aviso-cobro.verde{background:#E3F6F2;border:1px solid #B8E6DB;color:#0E5A4C}
 .cuenta-reg{font-family:var(--fT);font-weight:700;font-size:40px;line-height:1;color:var(--rojo)}
 .bloqueo{text-align:center;align-items:center}
 
@@ -1005,6 +1006,11 @@ function limpiarErr(m){
   if(/SIN_ACCESO/.test(m)) return "SIN_ACCESO";
   if(/JWT|token|401|permission denied/i.test(m)) return "Su sesión venció. Ingrese de nuevo.";
   if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return "Sin conexión. Revise su internet e intente de nuevo.";
+  if(/already exists|already registered|USER_ALREADY_EXISTS/i.test(m)) return "Ese correo ya tiene una cuenta. Use «Ingresar» con ese correo (o «¿Olvidó su contraseña?»), o regístrese con otro correo.";
+  if(/invalid (email or )?password|INVALID_EMAIL_OR_PASSWORD|invalid credentials/i.test(m)) return "El correo o la contraseña no coinciden. Revíselos o use «¿Olvidó su contraseña?».";
+  if(/password.*(short|length)|PASSWORD_TOO_SHORT/i.test(m)) return "La contraseña es muy corta: use mínimo 10 caracteres, con letras y números.";
+  if(/too many|rate limit|429/i.test(m)) return "Demasiados intentos seguidos. Espere un minuto e intente de nuevo.";
+  if(/invalid email/i.test(m)) return "Revise el correo: no parece válido.";
   return m.replace(/^.*?ERROR:\s*/,"");
 }
 async function neon(){
@@ -1126,6 +1132,14 @@ async function cargarEstado(){
   DB.avisos=(s.avisos||[]).map(a=>Object.assign({para:yo.id}, a));
   DB.carrito[yo.id]=leerCarrito(yo.id);
   DB.aportes=s.aportes||[]; DB.constancias=s.constancias||[];
+  /* Cuenta del dueño: acceso completo y permanente (la base lo aplica; aquí solo se muestra) */
+  let dueno=false; try{ dueno = await rpc("soy_dueno"); }catch(e){}
+  yo.dueno = !!dueno; DB.usuarios[0].dueno = !!dueno;
+  if(dueno){
+    DB.usuarios[0].pruebaHasta=null;
+    const mods=[...new Set(CASOS.filter(c=>!c.semana).map(c=>c.esp+"-n"+c.nivel))];
+    mods.forEach(m=>{ if(!DB.compras.some(c=>c.usuarioId===yo.id && c.modulo===m)) DB.compras.push({id:"dueno-"+m, usuarioId:yo.id, modulo:m, hasta:"2099-12-31", dueno:true}); });
+  }
   return s;
 }
 async function cargarAdmin(){
@@ -1165,13 +1179,15 @@ async function traerCaso(id, modo){
 }
 
 /* ---------- pago con Bold (firmador central de SkyNet Genesis) ---------- */
-async function pagarReal(btn){
+async function pagarReal(btn, pruebaModulo){
   const items = carrito().map(i=>({k:i.k}));
-  if(!items.length) return;
-  let fac=null; try{ fac=datosFactura(); }catch(e){ toast(e.message); const d=document.querySelector(".factura-datos"); if(d) d.open=true; return; }
+  if(!pruebaModulo && !items.length) return;
+  let fac=null; if(!pruebaModulo){ try{ fac=datosFactura(); }catch(e){ toast(e.message); const d=document.querySelector(".factura-datos"); if(d) d.open=true; return; } }
+  const txtBtn = btn ? btn.textContent : "";
   if(btn){ btn.disabled=true; btn.textContent="Abriendo Bold…"; }
   try{
-    const p = await rpc("pedido_crear", fac?{p_items:items, p_factura:fac}:{p_items:items});
+    const p = pruebaModulo ? await rpc("pedido_prueba_dueno", {p_modulo:pruebaModulo})
+                           : await rpc("pedido_crear", fac?{p_items:items, p_factura:fac}:{p_items:items});
     const qs = new URLSearchParams({plan:p.plan, empresa:p.empresa, meses:"1", org:(sesion().nombre||"").slice(0,40), volver:location.origin+"/"});
     const r = await fetch("https://skynetgenesis.com/bold-firma.php?"+qs.toString(), {cache:"no-store"}); const d = await r.json();
     if(!r.ok || !d.ok) throw new Error(d.error||"firma");
@@ -1180,7 +1196,7 @@ async function pagarReal(btn){
     try{ localStorage.setItem("eci_pago_pend", JSON.stringify({pedido:p.pedido, orden:d.orderId, t:Date.now()})); }catch(e){}
     new window.BoldCheckout({orderId:d.orderId, currency:d.currency, amount:String(d.amount), apiKey:d.apiKey, integritySignature:d.signature, description:d.description, redirectionUrl:d.redirectionUrl}).open();
   }catch(e){ toast(/coincide/.test(e.message)?e.message:"No se pudo abrir el pago con Bold. Intente de nuevo o escríbanos por WhatsApp."); }
-  finally{ if(btn){ btn.disabled=false; btn.textContent="Pagar con Bold"; } }
+  finally{ if(btn){ btn.disabled=false; btn.textContent=txtBtn||"Pagar con Bold"; } }
 }
 /* Al volver de Bold: el pago se aplica cuando Bold avisa (normalmente en segundos). Se revisa varias veces. */
 /* Si el aviso de Bold no llega, la app le pide a skynetgenesis.com que consulte a Bold y deje el pago registrado. */
@@ -1770,6 +1786,8 @@ function tarjetaModulo(u, m, compacta){
 }
 function bannerAcceso(u){
   let h="";
+  if(u.dueno){ const sinPrueba=!DB.compras.some(c=>c.usuarioId===u.id && !c.dueno);
+    return `<div class="aviso-cobro verde"><div class="row between"><div><b>Cuenta del dueño:</b> <span class="small">acceso completo y permanente a todos los módulos, sin cobros.${sinPrueba?" Si quiere comprobar el circuito de compra, haga una compra de prueba real de $1.000 por Bold (Urgencias · Nivel 1).":""}</span></div>${sinPrueba?`<button class="btn sec chico" data-act="prueba-dueno">Compra de prueba de $1.000</button>`:""}</div></div>`; }
   if(enPrueba(u)){ const n=difDias(u.pruebaHasta,hoy())+1; h+=`<div class="aviso-cobro ambar"><div class="row between"><div><b>Prueba gratis: le quedan ${n} ${n===1?"día":"días"}.</b> <span class="small">Tiene los 3 primeros casos de cada módulo. Compre los módulos completos para seguir sin límite.</span></div><button class="btn verde chico" data-act="nav" data-v="market">Ir al Market</button></div></div>`; }
   else if(esParticipante(u) && u.pruebaHasta && !DB.compras.some(c=>c.usuarioId===u.id) && !u.entidadId) h+=`<div class="aviso-cobro rojo"><b>Su prueba gratis terminó.</b><span class="small">Siga practicando: compre los módulos que necesita con un solo pago Bold. El caso de la semana sigue siendo gratis.</span><div><button class="btn verde chico" data-act="nav" data-v="market">Ir al Market</button></div></div>`;
   if(u.entidadId){ const en=entidad(u.entidadId), st=estadoCobro(en.pagadoHasta,en.pruebaHasta,en.interna); if(!st.acceso) h+=`<div class="aviso-cobro rojo"><b>El acceso de ${esc(en.nombre)} está cerrado por pago.</b><span class="small">Su historial y sus puntos se conservan. Comuníquese con la coordinación de su institución.</span></div>`; }
@@ -2373,6 +2391,7 @@ function clickProd(act, id, b, u){
   if(!REAL()) return false;
   switch(act){
     case "pagar": pagarReal(b); return true;
+    case "prueba-dueno": pagarReal(b, "urg-n1"); return true;
     case "avisos": { const av=misAvisos(u); abrirModal(`${cabModal("Avisos")}${av.length?av.slice(0,20).map(a=>`<div class="pedido-linea"><span class="small">${esc(a.txt)}</span><span class="small muted num">${fechaCorta(a.fecha)}</span></div>`).join(""):`<p class="muted">No tiene avisos.</p>`}`);
       if(av.some(a=>!a.leido)){ av.forEach(a=>a.leido=true); pintarBarra(); rpc("avisos_leidos").catch(()=>{}); } return true; }
     case "autoeval": { const i=+id, op=+b.dataset.op; if(ULTIMO.resp[i]!==undefined) return true; ULTIMO.resp[i]=op; const y=window.scrollY; vResultado(); window.scrollTo(0,y);
