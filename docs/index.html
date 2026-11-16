@@ -1624,8 +1624,8 @@ function vPortada(){
     <div class="card stack"><span class="eyebrow">Para instituciones</span><h3>Capacitación permanente de su personal, medible</h3>
       <ul class="small" style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px"><li>Asigne casos con fecha límite y vea quién cumplió.</li><li>Informe de capacitación por persona y servicio, para auditorías de habilitación, PAMEC y acreditación.</li><li>Módulos según los servicios que su institución tiene habilitados.</li><li>Nivel de desempeño de su equipo, de Bronce a Diamante.</li></ul>
       <div class="row"><button class="btn" data-act="nav" data-v="registro-inst">Registrar mi institución: 15 días gratis</button></div></div>
-    <div class="card stack"><span class="eyebrow">Con POLIANDES</span><h3>Cursos de educación continua por especialidad</h3>
-      <p class="small">Cada módulo de 15 casos puede cursarse como curso de educación continua con constancia de POLIANDES, Politécnico Industrial de Los Andes. Ideal para auxiliares de enfermería, enfermeros jefes y actualización profesional de médicos y psicólogos.</p>
+    <div class="card stack"><span class="eyebrow">Con institución aliada</span><h3>Cursos de educación continua por especialidad</h3>
+      <p class="small">Cada módulo de 15 casos puede cursarse como curso de educación continua con constancia de una institución aliada. Ideal para auxiliares de enfermería, enfermeros jefes y actualización profesional de médicos y psicólogos.</p>
       <p class="small muted">Certificado por módulo aprobado: ${pesos(P.certPoliandes)}.</p></div>
   </section>
   <section class="stack"><h2>Gane, suba y destáquese</h2>
@@ -1665,7 +1665,7 @@ function vPrecios(){
       <p class="small"><b>Además:</b> activación única de cada módulo para toda la institución: ${pesos(P.activacion)}. La mensualidad se paga cada mes; los módulos se pagan una sola vez.</p>
       <div class="row"><button class="btn verde" data-act="nav" data-v="registro-inst">Registrar mi institución: 15 días gratis</button><a class="btn sec" href="${waLink("Hola, quiero una cotización de Entrenamiento Clínico-IA para mi institución")}" target="_blank" rel="noopener">Hablar con un asesor</a></div>
     </section>
-    <section class="card stack"><h3>Certificado de educación continua con POLIANDES</h3><p class="small">Al aprobar los ${CASOS_POR_MODULO} casos de un módulo puede solicitar el certificado del curso, expedido por POLIANDES (educación informal). Valor: ${pesos(P.certPoliandes)} por módulo.</p></section>
+    <section class="card stack"><h3>Certificado de educación continua con una institución aliada</h3><p class="small">Al aprobar los ${CASOS_POR_MODULO} casos de un módulo puede solicitar el certificado del curso, expedido por una institución aliada (educación informal). Valor: ${pesos(P.certPoliandes)} por módulo.</p></section>
     ${pie()}</div></div>`;
 }
 function vHonor(){
@@ -1842,7 +1842,7 @@ function vModulo(){
       return `<article class="caso-card ${est} ${ok?"":"bloq"}"><div class="row between" style="flex-wrap:nowrap"><span class="caso-num">${i+1}</span><span class="ent-chip">${esc(c.entorno)}</span>${x?`<span class="caso-pts">${x.puntaje>=85?"★ ":""}${x.puntaje}</span>`:""}</div>
         <b class="caso-tit">${esc(c.titulo)}</b><span class="small muted">${esc(c.duracion)}${!a.ok&&prueba.includes(c.id)&&enPrueba(u)?" · incluido en la prueba":""}</span>
         <button class="btn ${x?"sec":"verde"} chico" data-act="ficha" data-id="${c.id}" ${ok?"":"disabled"}>${!ok?"🔒 Bloqueado":x?(x.puntaje>=APRUEBA?"Repetir":"Mejorar puntaje"):"▶ Atender"}</button></article>`}).join("")}</div>
-    <div class="info small">Al aprobar los ${pr.total} casos obtiene la constancia del módulo (${horasTxt(pr.total*HORAS_CASO)}) y puede solicitar el certificado de educación continua de POLIANDES.</div>
+    <div class="info small">Al aprobar los ${pr.total} casos obtiene la constancia del módulo (${horasTxt(pr.total*HORAS_CASO)}) y puede solicitar el certificado de educación continua de una institución aliada.</div>
   </div></div>`;
 }
 function vSemana(){ const c=casoSemana(); V.p.id=c.id; vFicha(); }
@@ -1878,7 +1878,7 @@ function vConstancias(){
   const u=sesion(), b=Object.values(mejores(u.id)).filter(i=>i.puntaje>=APRUEBA).sort((x,y)=>y.fecha.localeCompare(x.fecha));
   const comp=modulosDisponibles().filter(m=>progresoModulo(u.id,m.id).completo);
   $app().innerHTML=`<div class="wrap"><div class="stack" style="gap:20px"><h1>Constancias</h1>
-    <section class="stack"><h2>Módulos completos</h2>${comp.length?comp.map(m=>`<div class="card row between"><div><b>${esc(m.nombre)}</b><div class="small muted">${m.casos.length} casos · ${num(m.casos.length*HORAS_CASO)} horas</div></div><div class="row"><button class="btn sec chico" data-act="const-mod" data-id="${m.id}">Ver constancia</button><button class="btn verde chico" data-act="agregar-cert" data-id="${m.id}">Certificado POLIANDES · ${pesos(DB.config.precios.certPoliandes)}</button></div></div>`).join(""):`<p class="muted">Apruebe los ${CASOS_POR_MODULO} casos de un módulo para recibir la constancia del módulo y poder solicitar el certificado de POLIANDES.</p>`}</section>
+    <section class="stack"><h2>Módulos completos</h2>${comp.length?comp.map(m=>`<div class="card row between"><div><b>${esc(m.nombre)}</b><div class="small muted">${m.casos.length} casos · ${num(m.casos.length*HORAS_CASO)} horas</div></div><div class="row"><button class="btn sec chico" data-act="const-mod" data-id="${m.id}">Ver constancia</button><button class="btn verde chico" data-act="agregar-cert" data-id="${m.id}">Certificado de educación continua · ${pesos(DB.config.precios.certPoliandes)}</button></div></div>`).join(""):`<p class="muted">Apruebe los ${CASOS_POR_MODULO} casos de un módulo para recibir la constancia del módulo y poder solicitar el certificado de una institución aliada.</p>`}</section>
     <section class="stack"><h2>Casos aprobados</h2>${b.length?`<div class="card pad0 tabla-wrap"><table><thead><tr><th>Fecha</th><th>Caso</th><th>Puntaje</th><th></th></tr></thead><tbody>${b.map(i=>{const c=caso(i.casoId);return c?`<tr><td class="num">${fechaCorta(i.fecha)}</td><td>${esc(c.titulo)}<div class="small muted">${esc(esp(c.esp).n)}</div></td><td class="num"><b>${i.puntaje}</b></td><td><button class="btn sec chico" data-act="const-caso" data-id="${i.id}">Ver</button></td></tr>`:""}).join("")}</tbody></table></div>`:`<p class="muted">Aún no ha aprobado casos.</p>`}</section>
   </div></div>`;
 }
@@ -2008,7 +2008,7 @@ function vMarketPersona(){
       ${modulosDe(e.id).map(M=>{ if(!M.disponible) return ""; const a2=accesoModulo(u,M.id), k="mod:"+M.id;
         return `<div class="row between"><span class="small"><b>Nivel ${M.nivel}</b> · ${M.casos.length} casos</span>${a2.ok&&a2.via==="institucion"?`<span class="chip v">Incluido por su institución</span>`:enCarrito(k)?`<button class="btn sec chico" data-act="quitar" data-id="${k}">En su pedido · quitar</button>`:`<button class="btn verde chico" data-act="agregar" data-id="${M.id}">${a2.ok?"Renovar":"Agregar"} · ${pesos(precioModulo(u))}</button>`}</div>${a2.ok&&a2.via==="compra"?`<span class="small muted">Activo hasta ${fechaCorta(a2.hasta)}</span>`:""}`;}).join("")}
     </article>`).join("")}</div></section>`).join("")}
-    <section class="card stack"><h3>Certificados de educación continua con POLIANDES</h3><p class="small">Disponibles cuando aprueba los ${CASOS_POR_MODULO} casos de un módulo (se solicitan desde «Constancias»). Valor: ${pesos(DB.config.precios.certPoliandes)} por módulo.</p></section>
+    <section class="card stack"><h3>Certificados de educación continua con una institución aliada</h3><p class="small">Disponibles cuando aprueba los ${CASOS_POR_MODULO} casos de un módulo (se solicitan desde «Constancias»). Valor: ${pesos(DB.config.precios.certPoliandes)} por módulo.</p></section>
     </div><div id="pedido">${pedidoHTML()}</div></div>
     ${barraPedido()}</div></div>`;
 }
@@ -2050,7 +2050,7 @@ function aplicarPedido(){
   c.forEach(i=>{
     const [t,id]=i.k.split(":");
     if(t==="mod"){ const ac=compraDe(u.id,id); const base=ac&&ac.hasta>hoy()?ac.hasta:hoy(); DB.compras.push({id:uid("c"), usuarioId:u.id, modulo:id, hasta:sumarMeses(base,12)}); }
-    if(t==="cert"){ DB.certs.push({id:uid("ce"), usuarioId:u.id, modulo:id, fecha:hoy(), estado:"solicitado"}); avisar(u.id,"Su certificado de POLIANDES de "+modulo(id).nombre+" quedó solicitado. Llegará a su correo en 5 días hábiles."); avisar("superadmin","Nuevo certificado POLIANDES solicitado por "+u.nombre+" ("+modulo(id).nombre+")."); }
+    if(t==="cert"){ DB.certs.push({id:uid("ce"), usuarioId:u.id, modulo:id, fecha:hoy(), estado:"solicitado"}); avisar(u.id,"Su certificado de una institución aliada de "+modulo(id).nombre+" quedó solicitado. Llegará a su correo en 5 días hábiles."); avisar("superadmin","Nuevo certificado de educación continua solicitado por "+u.nombre+" ("+modulo(id).nombre+")."); }
     const en=u.entidadId?entidad(u.entidadId):null;
     if(t==="plan"||i.k==="mes"){ if(t==="plan") en.cupos=ajustarCupos(id); const base=en.pagadoHasta&&en.pagadoHasta>=hoy()?sumarDias(en.pagadoHasta,1):hoy(); en.pagadoHasta=finDeMes(base); }
     if(t==="act"){ if(!en.modulos.includes(id)) en.modulos.push(id); }
@@ -2166,7 +2166,7 @@ function vAdmin(){
   $app().innerHTML=`<div class="wrap"><div class="stack" style="gap:20px">${cabAdm("Resumen")}
     <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">${t("Ingresos del mes",pesos(ingM))}${t("Ingresos "+anio,pesos(ingA),pg.length+" pagos Bold")}${t("Personas",pers.length,DB.compras.length+" módulos vendidos")}${t("Instituciones",DB.entidades.length,est.filter(x=>x==="activa").length+" activas · "+est.filter(x=>x==="prueba").length+" en prueba · "+est.filter(x=>x==="cerrada").length+" cerradas")}${t("Casos atendidos",DB.intentos.length,"promedio "+(DB.intentos.length?Math.round(DB.intentos.reduce((a,i)=>a+i.puntaje,0)/DB.intentos.length):0))}${t("Casos en catálogo",todosLosCasos().filter(casoActivo).length,modulosDisponibles().length+" módulos")}</div>
     <div class="card pad0 tabla-wrap"><table><thead><tr><th>Especialidad</th><th>Nivel 1</th><th>Nivel 2</th><th>Nivel 3</th><th>Intentos</th><th>Promedio</th></tr></thead><tbody>${ESPECIALIDADES.map(e=>{const it=DB.intentos.filter(i=>i.esp===e.id);return `<tr><td>${esc(e.n)}${e.pronto?' <span class="chip g">En preparación</span>':""}</td>${[1,2,3].map(n=>`<td class="num">${casosDeModulo(modId(e.id,n)).length}/${CASOS_POR_MODULO}</td>`).join("")}<td class="num">${it.length}</td><td class="num">${it.length?Math.round(it.reduce((a,i)=>a+i.puntaje,0)/it.length):"—"}</td></tr>`}).join("")}</tbody></table></div>
-    ${DB.certs.length?`<div class="card stack"><h3>Certificados POLIANDES solicitados</h3>${DB.certs.map(c=>`<div class="row between small"><span>${esc((usuario(c.usuarioId)||{}).nombre)} · ${esc(modulo(c.modulo).nombre)} · ${fechaCorta(c.fecha)}</span><span class="chip ${c.estado==="enviado"?"v":"am"}">${c.estado==="enviado"?"Enviado":"Por enviar"}</span>${c.estado!=="enviado"?`<button class="btn sec chico" data-act="cert-enviado" data-id="${c.id}">Marcar enviado</button>`:""}</div>`).join("")}</div>`:""}
+    ${DB.certs.length?`<div class="card stack"><h3>Certificados de educación continua solicitados</h3>${DB.certs.map(c=>`<div class="row between small"><span>${esc((usuario(c.usuarioId)||{}).nombre)} · ${esc(modulo(c.modulo).nombre)} · ${fechaCorta(c.fecha)}</span><span class="chip ${c.estado==="enviado"?"v":"am"}">${c.estado==="enviado"?"Enviado":"Por enviar"}</span>${c.estado!=="enviado"?`<button class="btn sec chico" data-act="cert-enviado" data-id="${c.id}">Marcar enviado</button>`:""}</div>`).join("")}</div>`:""}
   </div></div>`;
 }
 function vAdmPersonas(){
@@ -2211,7 +2211,7 @@ function vAdmPrecios(){
   const P=DB.config.precios;
   $app().innerHTML=`<div class="wrap estrecho"><div class="stack" style="gap:18px">${cabAdm("Precios y ajustes")}
     <form class="card stack" data-form="precios" novalidate><h3>Personas</h3><div class="grid3">
-      <label class="campo" for="pr-mod">Módulo (12 meses)<input type="number" id="pr-mod" value="${P.modulo}" step="1000" min="0"></label><label class="campo" for="pr-desc">Descuento estudiante (%)<input type="number" id="pr-desc" value="${P.descEstudiante}" min="0" max="90"></label><label class="campo" for="pr-cert">Certificado POLIANDES<input type="number" id="pr-cert" value="${P.certPoliandes}" step="1000" min="0"></label></div>
+      <label class="campo" for="pr-mod">Módulo (12 meses)<input type="number" id="pr-mod" value="${P.modulo}" step="1000" min="0"></label><label class="campo" for="pr-desc">Descuento estudiante (%)<input type="number" id="pr-desc" value="${P.descEstudiante}" min="0" max="90"></label><label class="campo" for="pr-cert">Certificado de educación continua<input type="number" id="pr-cert" value="${P.certPoliandes}" step="1000" min="0"></label></div>
       <h3>Instituciones: valor por persona al mes</h3><label class="campo" for="pr-min" style="max-width:240px">Mínimo de personas<input type="number" id="pr-min" value="${P.minUsuarios}" min="1"></label><div class="grid2">${P.tramos.map((t,i)=>`<label class="campo" for="pr-p${i}">Tramo hasta <input type="number" id="pr-h${i}" value="${t.hasta}" min="1" style="width:80px;display:inline-block"> personas · valor por persona<input type="number" id="pr-p${i}" value="${t.pp}" step="100" min="0"></label>`).join("")}</div>
       <div class="grid2"><label class="campo" for="pr-act">Activación de cada módulo (pago único)<input type="number" id="pr-act" value="${P.activacion}" step="1000" min="0"></label></div>
       <label class="campo" for="pr-lote">Próximo lote de módulos<input type="text" id="pr-lote" value="${esc(DB.config.proximoLote)}"></label>
@@ -5446,7 +5446,7 @@ document.addEventListener("click", ev=>{
     case "iniciar": iniciarCaso(id, b.dataset.modo); return;
     case "ver-mod": ir("modulo",{mod:id}); return;
     case "agregar": if(!u){ ir("registro"); return; } agregarItem(itemModulo(u,id)); toast("Agregado a su pedido."); if(V.vista!=="market") ir("market"); else render(); return;
-    case "agregar-cert": agregarItem({k:"cert:"+id, concepto:"Certificado POLIANDES · "+modulo(id).nombre, valor:DB.config.precios.certPoliandes, pago:"unico"}); toast("Certificado agregado a su pedido."); ir("market"); return;
+    case "agregar-cert": agregarItem({k:"cert:"+id, concepto:"Certificado de educación continua · "+modulo(id).nombre, valor:DB.config.precios.certPoliandes, pago:"unico"}); toast("Certificado agregado a su pedido."); ir("market"); return;
     case "agregar-plan": { const en=entidad(u.entidadId), n=ajustarCupos(val("plan-n")); if(n<miembros(en.id).length){ toast("Su equipo ya tiene "+miembros(en.id).length+" personas: escoja al menos ese número."); return; } agregarItem({k:"plan:"+n, concepto:"Plan de "+n+" personas · mensualidad", valor:mensualidad(n), pago:"mensual"}); render(); return; }
     case "agregar-mes": case "pagar-mes-inst": { const en=entidad(u.entidadId), p=planDe(en); agregarItem({k:"mes", concepto:"Plan de "+p.n+" · mensualidad", valor:p.mes, pago:"mensual"}); if(V.vista!=="market") ir("market"); else render(); return; }
     case "agregar-act": agregarItem({k:"act:"+id, concepto:"Activación "+modulo(id).nombre, valor:DB.config.precios.activacion, pago:"unico"}); render(); return;
