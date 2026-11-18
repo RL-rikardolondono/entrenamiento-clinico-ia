@@ -2,7 +2,7 @@
 <meta name="description" content="Entrenamiento Clínico-IA: simulador de casos clínicos para médicos, enfermería y salud mental. Gamificado, con casos de la semana basados en estudios reales. SkyNet Genesis.">
 <meta name="theme-color" content="#1E3A4C"><meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%231E3A4C%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%276%27 fill=%27%23E0A21A%27/%3E%3C/svg%3E">
-<script src="config.js?v=984595"></script>
+<script src="config.js?v=988624"></script>
 <link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icono-192.png"><meta name="apple-mobile-web-app-capable" content="yes">
 <title>Entrenamiento Clínico-IA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -86,7 +86,7 @@ p{margin:0}
 
 /* chips */
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--azulSuave);color:var(--azul);white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--azulSuave);color:var(--azul);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 button.chip{white-space:normal;text-align:left;max-width:100%;border:0;cursor:pointer;line-height:1.3;border-radius:12px}
 .clave-wrap{display:flex;gap:6px;align-items:stretch}.clave-wrap input{flex:1;min-width:0}.ojo{border:1px solid var(--borde,#d6dde4);background:#fff;border-radius:10px;padding:0 10px;font-size:12px;font-weight:600;color:var(--azul);cursor:pointer}
 .sg-link{color:inherit;opacity:.35;text-decoration:none;font-size:12px}
@@ -946,7 +946,7 @@ function semilla(){
   const E3={id:"ent_hosp", nombre:"Hospital Demostración", tipo:"Hospital", area:"humana", complejidad:"III", ciudad:"Medellín", nit:"900.000.003-3", servicios:["urgencias","uci","cirugia","cardio","neuro"], cupos:40, modulos:[], prueba:["uci-n1","card-n1","neuro-n1","cir-n1"], pagadoHasta:null, pruebaHasta:sumarDias(H,9), codigo:"HOS-5512", logo:null, demo:true};
   db.entidades.push(E1,E2,E3);
   const U=(id,nombre,tipo,x)=>{ const u={id,nombre,tipo,correo:x.correo||(id.replace("u_","")+"@ejemplo.co"),clave:hashClave("entrena2026"),profesion:x.profesion||"",ciudad:x.ciudad||"",entidadId:x.entidadId||null,publico:x.publico!==false,mostrar:x.mostrar||"completo",creado:sumarDias(H,-60),pruebaHasta:x.pruebaHasta||null,demo:!!x.demo}; db.usuarios.push(u); return u; };
-  U("u_demo_pro","Usuario Demo","profesional",{correo:SG.demo, profesion:"Médico general", ciudad:"Santa Marta", demo:true, publico:false});
+  U("u_demo_pro","Camila Demo","profesional",{correo:SG.demo, profesion:"Médico general", ciudad:"Santa Marta", demo:true, publico:false});
   U("u_demo_est","Estudiante Demo","estudiante",{correo:SG.demo, profesion:"Estudiante de medicina", ciudad:"Barranquilla", entidadId:"ent_univ", demo:true, publico:false});
   U("u_demo_ent","Coordinación Demo","admin_inst",{correo:SG.demo, entidadId:"ent_clinica", demo:true, publico:false});
   if(!PROD){ U("u_super","Superadministrador","superadmin",{correo:SG.superadmin, demo:true, publico:false}); usuario_clave(db,"u_super",CLAVE_SUPER); }
@@ -1187,6 +1187,7 @@ async function traerCaso(id, modo){
 
 /* ---------- pago con Bold (firmador central de SkyNet Genesis) ---------- */
 async function pagarReal(btn, pruebaModulo){
+  if(!pruebaModulo && typeof sinModulosInst==="function" && sinModulosInst()){ toast("Agregue al menos un módulo: con solo la mensualidad su equipo no podría atender casos."); return; }
   const items = carrito().map(i=>({k:i.k}));
   if(!pruebaModulo && !items.length) return;
   let fac=null; if(!pruebaModulo){ try{ fac=datosFactura(); }catch(e){ toast(e.message); const d=document.querySelector(".factura-datos"); if(d) d.open=true; return; } }
@@ -1808,7 +1809,7 @@ function estudioHTML(c, corto){
 /* ===================== Entrenamiento Clínico-IA · PARTICIPANTE ===================== */
 function tarjetaModulo(u, m, compacta){
   const M=modulo(m), pr=progresoModulo(u.id,m), a=accesoModulo(u,m), pct=pr.total?Math.round(pr.aprobados/pr.total*100):0;
-  const est = a.ok ? (a.via==="institucion"?`<span class="chip v">Por ${esc(a.ent.nombre)}</span>`:a.via==="compra"?`<span class="chip v">Hasta ${fechaCorta(a.hasta)}</span>`:"") : enPrueba(u)?`<span class="chip am">Prueba: 3 casos</span>`:`<span class="chip r">Sin acceso</span>`;
+  const est = a.ok ? (a.via==="institucion"?`<span class="chip v" style="display:inline-block" title="${esc(a.ent.nombre)}">Por ${esc(a.ent.nombre)}</span>`:a.via==="compra"?`<span class="chip v">Hasta ${fechaCorta(a.hasta)}</span>`:"") : enPrueba(u)?`<span class="chip am">Prueba: 3 casos</span>`:`<span class="chip r">Sin acceso</span>`;
   return `<article class="card stack s8 mod-viva ec${espCol(M.esp)}"><div class="row" style="flex-wrap:nowrap">${espIco(M.esp)}<div style="min-width:0;flex:1"><b>${esc(esp(M.esp).n)}</b><div class="small muted">${pr.total} casos</div></div><span class="niv-badge n${M.nivel}">N${M.nivel}<small>${esc(M.nivelTxt)}</small></span></div>
     <div class="row between small"><span>${pr.aprobados} de ${pr.total} aprobados</span><span class="muted num">Promedio ${pr.prom}</span></div><div class="barra viva"><i style="width:${pct}%"></i></div>
     <div class="row between">${est}<button class="btn verde chico" data-act="ver-mod" data-id="${m}">${pr.hechos?"Continuar":"Empezar"}</button></div></article>`;
@@ -1837,7 +1838,7 @@ function vInicio(){
     <div class="grid3" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
       <button class="card kpi" data-act="nav" data-v="logros" style="text-align:left"><span>Gemas</span><b>${num(gemasDe(u.id),0)}</b><span>${GEMA} úselas en interconsultas</span></button>
       <div class="card kpi"><span>Racha</span><b>${act.racha||0} ${act.racha===1?"día":"días"}</b><span>${act.protectores||0} protector${act.protectores===1?"":"es"} de racha</span></div>
-      <button class="card kpi" data-act="nav" data-v="liga" style="text-align:left"><span>Liga ${esc(lg.divN)}</span><b>${lg.pos}.º lugar</b><span>${num(xpSemana(u.id),0)} XP esta semana</span></button>
+      <button class="card kpi" data-act="nav" data-v="liga" style="text-align:left"><span>Liga ${esc(lg.divN)}</span><b>${num(xpSemana(u.id),0)} XP</b><span>esta semana · la liga es opcional</span></button>
       <div class="card kpi"><span>Casos aprobados</span><b>${aprob}</b><span>${horasTxt(aprob*HORAS_CASO)} de práctica</span></div>
     </div>
     ${asig.length?`<section class="stack"><h2>Asignado por su institución</h2>${asig.map(a=>{const m=mejores(u.id); const ok=a.casos.filter(id=>m[id]&&m[id].puntaje>=APRUEBA).length; const venc=difDias(a.limite,hoy());
@@ -2019,14 +2020,17 @@ function enCarrito(k){ return carrito().some(i=>i.k===k); }
 function agregarItem(it){ const c=carrito(); if(it.k.startsWith("plan:")||it.k==="mes"){ for(let i=c.length-1;i>=0;i--) if(c[i].k.startsWith("plan:")||c[i].k==="mes") c.splice(i,1); } if(!c.some(i=>i.k===it.k)) c.push(it); guardarDB(); }
 function quitarItem(k){ const c=carrito(), i=c.findIndex(x=>x.k===k); if(i>=0) c.splice(i,1); guardarDB(); }
 function itemModulo(u,m){ return {k:"mod:"+m, concepto:modulo(m).nombre+" · 12 meses de acceso", valor:precioModulo(u), pago:"unico"}; }
+function sinModulosInst(){ const u=sesion(); if(!u||u.tipo!=="admin_inst") return false; const en=entidad(u.entidadId); if(!en||en.interna) return false;
+  const st=estadoCobro(en.pagadoHasta,en.pruebaHasta,en.interna); return !(en.modulos||[]).length && st.e!=="prueba" && !carrito().some(i=>i.k.startsWith("act:")); }
 function pedidoHTML(){
-  const c=carrito(), unico=c.filter(i=>i.pago==="unico"), mes=c.filter(i=>i.pago==="mensual"), tot=c.reduce((a,i)=>a+i.valor,0);
+  const c=carrito(), unico=c.filter(i=>i.pago==="unico"), mes=c.filter(i=>i.pago==="mensual"), tot=c.reduce((a,i)=>a+i.valor,0), sinMods=sinModulosInst();
   return `<aside class="card pedido" aria-label="Su pedido"><h3>Su pedido</h3>
     ${c.length?`${mes.length?`<span class="grupo-t">Mensualidad</span>${mes.map(i=>`<div class="pedido-linea"><span>${esc(i.concepto)}</span><span class="row" style="gap:6px;flex-wrap:nowrap"><b class="num">${pesos(i.valor)}</b><button class="btn sec chico" data-act="quitar" data-id="${esc(i.k)}" aria-label="Quitar">×</button></span></div>`).join("")}`:""}
       ${unico.length?`<span class="grupo-t">Pago único</span>${unico.map(i=>`<div class="pedido-linea"><span>${esc(i.concepto)}</span><span class="row" style="gap:6px;flex-wrap:nowrap"><b class="num">${pesos(i.valor)}</b><button class="btn sec chico" data-act="quitar" data-id="${esc(i.k)}" aria-label="Quitar">×</button></span></div>`).join("")}`:""}
       <div class="row between"><span>Paga hoy</span><span class="pedido-total">${pesos(tot)}</span></div>
       ${mes.length?`<p class="small muted">La mensualidad se renueva cada mes. Si no se paga, el acceso se cierra el día 5 del mes siguiente.</p>`:""}
-      <button class="btn verde full" data-act="pagar">Pagar con Bold</button>`:`<p class="small muted">Aún no ha agregado nada. Elija módulos y aquí verá la lista, el precio de cada uno y el total.</p>`}
+      ${sinMods?`<div class="aviso-cobro ambar small"><b>Falta activar módulos.</b> Su institución todavía no tiene módulos activos: con solo la mensualidad su equipo no podría atender casos. Agregue al menos un módulo (pago único) en «2. Módulos».</div>`:""}
+      <button class="btn verde full" data-act="pagar" ${sinMods?"disabled":""}>Pagar con Bold</button>`:`<p class="small muted">Aún no ha agregado nada. Elija módulos y aquí verá la lista, el precio de cada uno y el total.</p>`}
   </aside>`;
 }
 function barraPedido(){ const c=carrito(); return c.length?`<div class="barra-pedido ver"><span>${c.length} ${c.length===1?"ítem":"ítems"} · <b>${pesos(c.reduce((a,i)=>a+i.valor,0))}</b></span><button class="btn verde chico" data-act="ir-pedido">Ver pedido</button></div>`:""; }
@@ -2061,7 +2065,7 @@ function vMarketInst(){
           <div class="tramos">${P.tramos.map((t,i)=>`<span>${i?P.tramos[i-1].hasta+1:MIN_USU()}–${t.hasta} personas: <b>${pesos(t.pp)}</b> c/u</span>`).join("")}</div>
           ${enPed?`<button class="btn sec chico" data-act="quitar" data-id="${enPed.k}" style="align-self:flex-start">${esc(enPed.concepto)} en su pedido · quitar</button>`:`<button class="btn verde chico" data-act="agregar-plan" style="align-self:flex-start">Agregar al pedido</button>`}</div>
         <p class="small muted">¿Más de 100 personas o una universidad? <a href="${waLink("Hola, quiero una cotización institucional de Entrenamiento Clínico-IA")}" target="_blank" rel="noopener">Pida una cotización</a>.</p></section>
-      <section class="stack s8"><h2>2. Módulos (pago único)</h2><p class="small muted">«Sugerido» = corresponde a los servicios habilitados de su institución.${st.e==="prueba"?" En la prueba tiene los módulos sugeridos; para conservarlos después de la prueba, actívelos aquí.":""}</p>
+      <section class="stack s8"><h2>2. Módulos (pago único)</h2><p class="small muted">«Sugerido» = corresponde a los servicios habilitados de su institución.${st.e==="prueba"?" En la prueba tiene los módulos sugeridos; para conservarlos después de la prueba, actívelos aquí.":!en.modulos.length&&!en.interna?" <b>Su institución aún no tiene módulos activos: active al menos uno para que su equipo pueda atender casos.</b>":""}</p>
         ${areasInst.map(a=>`<div class="grid2">${ESPECIALIDADES.filter(e=>e.area===a).map(e=>`<div class="card stack s8 mod-viva ec${espCol(e.id)}"><div class="row" style="flex-wrap:nowrap">${espIco(e.id)}<div style="min-width:0;flex:1"><b>${esc(e.n)}</b> ${sug.includes(e.id)?'<span class="chip v">Sugerido</span>':""}<div class="small muted">${casosDeEsp(e.id).length} casos en 3 niveles</div></div></div>
             ${modulosDe(e.id).filter(M=>M.disponible).map(M=>{const k="act:"+M.id, ya=en.modulos.includes(M.id); return `<div class="row between"><span class="small"><b>Nivel ${M.nivel}</b> · ${esc(M.nivelTxt)}</span>${ya?`<span class="chip v">Activo</span>`:enCarrito(k)?`<button class="btn sec chico" data-act="quitar" data-id="${k}">En su pedido · quitar</button>`:`<button class="btn verde chico" data-act="agregar-act" data-id="${M.id}">Activar · ${pesos(P.activacion)}</button>`}</div>`}).join("")}</div>`).join("")}</div>`).join("")}</section>
     </div><div id="pedido">${pedidoHTML()}</div></div>${barraPedido()}</div></div>`;
@@ -2359,9 +2363,9 @@ function armarResultado(full, modoSrv){
   const R=calificar(), c=S.c;
   return {R, c, modo:modoSrv||S.modo, min:S.min, crisis:S.crit, estable:S.tRescate!==null && !S.crit, ganados:0, gemas:0, nuevas:[], intentoId:null, resp:{}, qi:0, acciones:accionesTurno(), variante:n};
 }
-function resultadoPendiente(c, enCola){
-  $app().innerHTML=`<div class="wrap estrecho"><div class="card stack" style="max-width:520px;margin:30px auto;text-align:center"><h2>${enCola?"Resultado guardado sin señal":"No se pudo guardar el resultado"}</h2>
-    <p class="muted">${enCola?"Atendió «"+esc(c.titulo)+"». Su resultado quedó guardado en este equipo y se enviará solo cuando vuelva la conexión; entonces verá su puntaje y la revisión en «Constancias» y en el módulo.":"Revise su conexión e intente de nuevo."}</p>
+function resultadoPendiente(c, enCola, motivo){
+  $app().innerHTML=`<div class="wrap estrecho"><div class="card stack" style="max-width:520px;margin:30px auto;text-align:center"><h2>${enCola?"Resultado guardado sin señal":motivo?"Este resultado no se guardó":"No se pudo guardar el resultado"}</h2>
+    <p class="muted">${enCola?"Atendió «"+esc(c.titulo)+"». Su resultado quedó guardado en este equipo y se enviará solo cuando vuelva la conexión; entonces verá su puntaje y la revisión en «Constancias» y en el módulo.":motivo?esc(motivo):"Revise su conexión e intente de nuevo."}</p>
     <div class="row" style="justify-content:center"><button class="btn verde" data-act="nav" data-v="${casa(sesion())}">Volver al inicio</button></div></div></div>`;
 }
 async function terminarSinClave(){
@@ -2372,12 +2376,12 @@ async function terminarSinClave(){
     catch(e){ toast(limpiarErr(e.message)); resultadoPendiente(c0,false); return; }
     V={vista:"resultado",p:{}}; render(); try{ window.scrollTo(0,0); }catch(e){} return;
   }
-  const antes=stats(u.id,c0.esp), insA=insigniasDe(u.id); let r=null, enCola=false;
+  const antes=stats(u.id,c0.esp), insA=insigniasDe(u.id); let r=null, enCola=false, motivo="";
   for(let i=0;i<3 && !r;i++){
     try{ r = await rpc("registrar_intento", {p_caso:c0.id, p_modo:S.modo, p_acciones:acciones}); }
-    catch(e){ const m=limpiarErr(e.message); if(!/conexión/.test(m)){ toast(m); break; } if(i===2){ colaAgregar({caso:c0.id, modo:S.modo, acciones}); enCola=true; } else await new Promise(ok=>setTimeout(ok,2000)); }
+    catch(e){ const m=limpiarErr(e.message); if(!/conexión/.test(m)){ toast(m); motivo=m; break; } if(i===2){ colaAgregar({caso:c0.id, modo:S.modo, acciones}); enCola=true; } else await new Promise(ok=>setTimeout(ok,2000)); }
   }
-  if(!r){ if(enCola) toast("Sin señal: su resultado quedó guardado y se enviará al volver la conexión."); resultadoPendiente(c0,enCola); return; }
+  if(!r){ if(enCola) toast("Sin señal: su resultado quedó guardado y se enviará al volver la conexión."); resultadoPendiente(c0,enCola,motivo); return; }
   const res=armarResultado(r.caso, r.modo);
   if(res.R.total!==r.total){ res.R.total=r.total; res.R.secs=r.secs; }   /* manda el puntaje que calculó la base */
   const i=CASOS.findIndex(x=>x.id===c0.id); if(i>=0) CASOS[i]=Object.assign({}, CASOS[i], r.caso, {parcial:false, parcialClave:false});
@@ -2478,7 +2482,7 @@ function submitProd(tipo, f, u){
       ocupado(f, async()=>{
         if(nueva){ try{ await authCrear(n,c,document.getElementById("rg-clave").value); }catch(e){ err("rg-err",limpiarErr(e.message)); return; } }
         try{ await rpc("registrar_persona",{p_nombre:n, p_tipo:t, p_profesion:val("rg-prof"), p_ciudad:val("rg-ciudad"), p_codigo:cod, p_publico:marcado("rg-publico")}); await entrarReal(); }
-        catch(e){ if(nueva){ MODO="real"; V={vista:"completar", p:{email:c}}; render(); } err("rg-err",limpiarErr(e.message)); }
+        catch(e){ if(nueva){ const ant=guardarCampos(f); MODO="real"; V={vista:"completar", p:{email:c}}; render(); ponerCampos(ant); } err("rg-err",limpiarErr(e.message)); }
       }); return true; }
     if(tipo==="registro-inst"){
       const sinCuenta=V.vista==="completar", n=val("re-nombre"), resp=val("re-resp"), c=val("re-correo").toLowerCase();
@@ -2487,13 +2491,14 @@ function submitProd(tipo, f, u){
       if(!sinCuenta){ const k=document.getElementById("re-clave").value, k2=document.getElementById("re-clave2").value;
         if(!correoOk(c)) return !err("re-err","Escriba un correo válido.");
         const e=errClave(k,c); if(e) return !err("re-err",e); if(k!==k2) return !err("re-err","Las dos contraseñas no coinciden."); }
+      const nitR=nitRevisar(val("re-nit")); if(!nitR.ok) return !err("re-err",nitR.msg);
       if(!marcado("re-datos")) return !err("re-err","Debe autorizar el tratamiento de datos.");
       const serv=[...document.querySelectorAll("input[name=re-serv]:checked")].map(x=>x.value);
       let es=espSugeridas(serv).filter(e=>esp(e)); if(!es.length) es=["urg","medgen","mint"];
       ocupado(f, async()=>{
         if(!sinCuenta){ try{ await authCrear(resp,c,document.getElementById("re-clave").value); }catch(e){ err("re-err",limpiarErr(e.message)); return; } }
-        try{ await rpc("registrar_institucion",{p_nombre:n, p_responsable:resp, p_tipo:val("re-tipo"), p_nit:val("re-nit"), p_ciudad:val("re-ciudad"), p_complejidad:val("re-comp"), p_cupos:ajustarCupos(val("re-cupos")), p_servicios:serv, p_prueba:es.map(e=>modId(e,1))}); await entrarReal(); }
-        catch(e){ if(!sinCuenta){ MODO="real"; V={vista:"completar", p:{email:c, inst:true}}; render(); } err("re-err",limpiarErr(e.message)); }
+        try{ await rpc("registrar_institucion",{p_nombre:n, p_responsable:resp, p_tipo:val("re-tipo"), p_nit:nitR.nit, p_ciudad:val("re-ciudad"), p_complejidad:val("re-comp"), p_cupos:ajustarCupos(val("re-cupos")), p_servicios:serv, p_prueba:es.map(e=>modId(e,1))}); await entrarReal(); }
+        catch(e){ if(!sinCuenta){ const ant=guardarCampos(f); MODO="real"; V={vista:"completar", p:{email:c, inst:true}}; render(); ponerCampos(ant); } err("re-err",limpiarErr(e.message)); }
       }); return true; }
   }
   if(!REAL()) return false;
@@ -2508,8 +2513,8 @@ function submitProd(tipo, f, u){
       rpc("inst_invitar",{p_nombre:n, p_correo:c, p_tipo:val("am-tipo"), p_profesion:val("am-prof")}).then(()=>recargar()).then(()=>{ const en=entidad(u.entidadId), link=location.origin+location.pathname+"#registro";
         abrirModal(`${cabModal("Invitación lista")}<p>Le guardamos un cupo a <b>${esc(n)}</b> (${esc(c)}).</p><div class="info small">Envíele el enlace y el código: al crear su cuenta escribe el código <b>${esc(en.codigo)}</b> y queda en su equipo.<br>${esc(link)}</div><div class="row"><button class="btn sec" data-act="copiar" data-txt="${esc("Hola "+n+", te invito a Entrenamiento Clínico-IA. Crea tu cuenta con este correo ("+c+") aquí: "+link+" y escribe el código de la institución: "+en.codigo)}">Copiar mensaje</button><button class="btn verde" data-act="cerrar-modal">Listo</button></div>`); })
       .catch(e=>errEn("am-err",limpiarErr(e.message))); return true; }
-    case "perfil-inst": { const fl=document.getElementById("pe-logo").files[0];
-      const guardar=logo=>accionReal("inst_perfil",{p_nombre:val("pe-nombre"), p_nit:val("pe-nit"), p_complejidad:val("pe-comp"), p_ciudad:val("pe-ciudad"), p_servicios:[...document.querySelectorAll("input[name=pe-serv]:checked")].map(x=>x.value), p_logo:logo||null},"Perfil guardado.");
+    case "perfil-inst": { const fl=document.getElementById("pe-logo").files[0]; const nitP=nitRevisar(val("pe-nit")); if(!nitP.ok){ toast(nitP.msg); return true; }
+      const guardar=logo=>accionReal("inst_perfil",{p_nombre:val("pe-nombre"), p_nit:nitP.nit, p_complejidad:val("pe-comp"), p_ciudad:val("pe-ciudad"), p_servicios:[...document.querySelectorAll("input[name=pe-serv]:checked")].map(x=>x.value), p_logo:logo||null},"Perfil guardado.");
       if(fl) comprimir(fl,160,.85).then(guardar).catch(e=>toast(e.message)); else guardar(null); return true; }
     case "asignar": { const t=val("as-tit"), fch=val("as-fecha"), cs=[...document.querySelectorAll("input[name=as-caso]:checked")].map(x=>x.value);
       rpc("inst_asignar",{p_titulo:t, p_casos:cs, p_limite:fch||null}).then(()=>recargar("Asignación creada y avisada a su equipo.")).catch(e=>errEn("as-err",limpiarErr(e.message))); return true; }
@@ -2532,6 +2537,18 @@ async function traerCasoCalma(id){
   const base = caso(id)||{};
   return Object.assign({}, base, full, {parcial:false, parcialClave:false});
 }
+
+/* NIT colombiano: valida el dígito de verificación (método DIAN) o lo agrega si no viene */
+function nitDV(base){ const w=[3,7,13,17,19,23,29,37,41,43,47,53,59,67,71], d=String(base).replace(/\D/g,"").split("").reverse(); let t=0; d.forEach((x,i)=>{ t+=Number(x)*(w[i]||0); }); const r=t%11; return r>=2?11-r:r; }
+function nitRevisar(v){ v=String(v||"").trim(); if(!v) return {ok:true, nit:""};
+  const m=v.replace(/\s/g,"").match(/^([\d.]{5,15})(?:-(\d))?$/); if(!m) return {ok:false, msg:"Escriba el NIT solo con números, por ejemplo 900123456-8."};
+  const base=m[1].replace(/\./g,""), dv=nitDV(base);
+  if(m[2]!==undefined && Number(m[2])!==dv) return {ok:false, msg:"El dígito de verificación del NIT no coincide: para "+base+" debería ser "+dv+". Revíselo en el RUT."};
+  return {ok:true, nit:base+"-"+dv}; }
+
+/* conserva lo escrito cuando un formulario se vuelve a dibujar (p. ej. código de institución equivocado) */
+function guardarCampos(f){ const o={}; if(f) f.querySelectorAll("input,select,textarea").forEach(el=>{ if(!el.id||el.type==="password"||el.type==="file") return; o[el.id]=(el.type==="checkbox"||el.type==="radio")?el.checked:el.value; }); return o; }
+function ponerCampos(o){ Object.keys(o||{}).forEach(id=>{ const el=document.getElementById(id); if(!el) return; if(el.type==="checkbox"||el.type==="radio") el.checked=!!o[id]; else el.value=o[id]; }); }
 /* qrcode-generator 1.4.4 — Kazuhiko Arase — licencia MIT (incluida tal cual, sin el cargador de módulos) */
 //---------------------------------------------------------------------
 //
